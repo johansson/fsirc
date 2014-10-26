@@ -18,8 +18,8 @@
 #r "FParsec.dll"
 #r "FParsecCS.dll"
 #load "Extensions.fs"
-#load "client.fs"
 #load "parser.fs"
+#load "client.fs"
 
 open System
 open System.IO
@@ -27,38 +27,47 @@ open Fs.Irc
 open Fs.Irc.Parser
 open Microsoft.FSharp.Control
 
+let args = fsi.CommandLineArgs
+
+if args.Length < 5 then
+    printfn "need nick, network, port, channel(s)"
+    Environment.Exit(1)
+
+let nick = fsi.CommandLineArgs.[1]
+let server = fsi.CommandLineArgs.[2]
+let port = Int32.Parse(fsi.CommandLineArgs.[3])
+
 let wr = new StreamWriter("fsirc.log", true, Text.Encoding.UTF8)
 
 wr.AutoFlush <- true
 
 let write (s: string) = wr.WriteLine(s)
 
-let nick = query {
-    for arg in Environment.GetCommandLineArgs() do
-    lastOrDefault
-}
+let channels = fsi.CommandLineArgs.[4..] |> Array.toList
 
-let client = new Client.Client(nick, "irc.someserver.net", 6667)
-
-let channels = ["#foo"; "#bar"]
+let client = new Client.Client(nick, server, port)
 
 client.Connected
     |> Observable.subscribe (fun _ -> channels |> List.map client.Join |> Async.Parallel |> Async.Ignore |> Async.Start)
 
 client.Messaged
-    |> Observable.subscribe (fun s -> wr.WriteLine(s))
+    |> Observable.subscribe (fun m -> printfn "%A" m)
 
 client.Messaged
-    |> Observable.subscribe (fun s -> let message = Parser.ParseMessage s
-                                      match message with
-                                      | None   -> wr.WriteLine("parse error: %s", s)
-                                                  printfn "parse error: %s" s
-                                      | Some m -> wr.WriteLine("parsed: %A", m)
-                                                  printfn "parsed: %A" m)
+    |> Observable.filter(fun m -> match m.prefix with
+                                  | Some (User (_,_,_)) -> m.command = "PRIVMSG"
+                                  | _                   -> false)
+    |> Observable.subscribe(fun m -> match m.prefix with
+                                     | Some (User (n,_,_)) -> printfn "%s <%s> %s" m.parameters.Head n m.parameters.Tail.Head
+                                     | _                   -> ())
 
 client.Messaged
-    |> Observable.filter (fun s -> s.Contains("!uptime"))
-    |> Observable.subscribe (fun s -> client.Uptime (if s.Contains("#foo") then "#foo" elif s.Contains("#bar") then "#bar" else "someuser") |> Async.Start)
+    |> Observable.filter(fun m -> match m.prefix with
+                                  | Some (User (_,_,_)) -> m.command = "PRIVMSG" && m.parameters.Tail.Head.StartsWith("!uptime")
+                                  | _                   -> false)
+    |> Observable.subscribe(fun m -> match m.prefix with
+                                     | Some (User (n,_,_)) -> client.Uptime (m.parameters.Head) |> Async.Start
+                                     | _                   -> ())
 
 client.Connect() |> Async.StartImmediate
 
@@ -66,3 +75,6 @@ let ``^c`` _ = client.Quit("Ctrl-C!") |> Async.RunSynchronously
 Console.CancelKeyPress |> Observable.subscribe ``^c``
 
 Console.ReadKey()
+client.Quit("Bye, master!")
+
+Async.Sleep(1000) |> Async.RunSynchronously

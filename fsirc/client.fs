@@ -21,6 +21,9 @@ open System.IO
 open System.Net.Sockets
 open Extensions
 
+open Fs.Irc
+open Fs.Irc.Parser
+
 module Client =
     let getBytes (x: string) = x |> System.Text.Encoding.UTF8.GetBytes
 
@@ -32,7 +35,7 @@ module Client =
         let bootTime = DateTime.UtcNow
 
         let connected = new Event<string>()
-        let messaged = new Event<string>()
+        let messaged = new Event<Message>()
         let pinged = new Event<string>()
 
         let ping (n: string) = String.Format("PONG :{0}\r\n", n)
@@ -74,11 +77,11 @@ module Client =
 
         let procLine line = async {
             printfn "%s" line
-            messaged.Trigger line
-            if line.Contains("001") then
-                connected.Trigger h
-            elif line.StartsWith("PING") then
-                pinged.Trigger (line.Substring(line.IndexOf(':') + 1))
+            let message = Fs.Irc.Parser.ParseMessage(line)
+            
+            match message with
+            | None   -> printfn "parse error"
+            | Some m -> messaged.Trigger m
         }
 
         let rec read (rdr: Option<AsyncStreamReader>) = async {
@@ -94,6 +97,20 @@ module Client =
         }
 
         member this.Connect () = async {
+            this.Messaged
+                |> Observable.filter(fun m -> match m.prefix with
+                                              | None -> m.command = "PING"
+                                              | _    -> false)
+                |> Observable.subscribe(fun m -> pinged.Trigger m.parameters.Head) |> ignore
+
+            this.Messaged
+                |> Observable.filter(fun m -> match m.prefix with
+                                              | Some (Server s) -> m.command = "001"
+                                              | _               -> false)
+                |> Observable.subscribe(fun m -> match m.prefix with
+                                                 | Some (Server s) -> connected.Trigger s
+                                                 | _               -> ()) |> ignore
+
             this.Pinged |> Observable.subscribe(fun pong -> ping pong |> write |> Async.Ignore |> Async.Start) |> ignore
             let c = new TcpClient()
             c.NoDelay <- true
