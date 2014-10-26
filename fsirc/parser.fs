@@ -35,11 +35,11 @@ type Message = {
 }
 
 module Parser =
-    let internal colon   = ':'
-    let internal excl    = '!'
-    let internal at      = '@'
-    let internal space   = ' '
-    let internal dot     = '.'
+    let internal colon  = ':'
+    let internal excl   = '!'
+    let internal at     = '@'
+    let internal space  = ' '
+    let internal dot    = '.'
     let internal spaces = (anyOf " \b\t")
 
     let internal nick = many1Chars (noneOf " .:!@\r\n")
@@ -63,11 +63,11 @@ module Parser =
     let internal parameters = many (spaces >>. parameter)
 
     let internal message : Parser<Message, unit> = parse {
-        let! p  = opt prefix <?> "prefix"
-        let! s1 = opt (many1Chars spaces)
-        let! c  = command <?> "command"
+        let! p   = opt prefix <?> "prefix"
+        let! s1  = opt (many1Chars spaces)
+        let! c   = command <?> "command"
         let! ps  = parameters <?> "parameters"
-        let! _  = opt newline
+        let! _   = opt newline
         let! eoi = eof
         return { prefix = p; command = c; parameters = ps }
     }
