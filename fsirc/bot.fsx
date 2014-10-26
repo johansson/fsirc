@@ -58,8 +58,7 @@ client.Messaged
 
 client.Messaged
     |> Observable.filter (fun s -> s.Contains("!uptime"))
-    |> Observable.subscribe (fun s -> let c = if s.Contains("#foo") then "#foo" elif s.Contains("#bar") then "#bar" else "someuser"
-                                      client.Uptime s |> Async.Start)
+    |> Observable.subscribe (fun s -> client.Uptime (if s.Contains("#foo") then "#foo" elif s.Contains("#bar") then "#bar" else "someuser") |> Async.Start)
 
 client.Connect() |> Async.StartImmediate
 
