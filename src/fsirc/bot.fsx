@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#I @"E:\projects\fsirc\packages\FSharpx.Core.1.8.41\lib\40\"
-#I @"E:\projects\fsirc\packages\FParsec.1.0.1\lib\net40-client\"
+#I @"..\..\packages\FSharpx.Core\lib\40\"
+#I @"..\..\packages\FParsec\lib\net40-client\"
 #r "FSharpx.Core.dll"
 #r "FParsec.dll"
 #r "FParsecCS.dll"

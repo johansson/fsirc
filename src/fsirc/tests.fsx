@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#I @"E:\projects\fsirc\packages\FParsec.1.0.1\lib\net40-client\"
+#I @"..\..\packages\FParsec\lib\net40-client\"
 
 #r "FParsec.dll"
 #r "FParsecCS.dll"

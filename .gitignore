@@ -6,6 +6,9 @@
 *.user
 *.sln.docstates
 
+# Xamarin Studio / monodevelop user-specific
+*.userprefs
+
 # Build results
 
 [Dd]ebug/
@@ -95,9 +98,8 @@ publish/
 # Publish Web Output
 *.Publish.xml
 
-# NuGet Packages Directory
-## TODO: If you have NuGet Package Restore enabled, uncomment the next line
-packages/
+# Enable nuget.exe in the .nuget folder (though normally executables are not tracked)
+!.nuget/NuGet.exe
 
 # Windows Azure Build Output
 csx
@@ -154,3 +156,30 @@ $RECYCLE.BIN/
 
 # Mac desktop service store files
 .DS_Store
+
+# ===================================================
+# Exclude F# project specific directories and files
+# ===================================================
+
+# NuGet Packages Directory
+packages/
+
+# Generated documentation folder
+docs/output/
+
+# Temp folder used for publishing docs
+temp/
+
+# Test results produced by build
+TestResults.xml
+
+# Nuget outputs
+nuget/*.nupkg
+release.cmd
+release.sh
+localpackages/
+paket-files
+*.orig
+.paket/paket.exe
+docs/content/license.md
+docs/content/release-notes.md
