@@ -1,3 +1,9 @@
+(*** hide ***)
+// This block of code is omitted in the generated HTML documentation. Use 
+// it to define helpers that you do not want to show in the documentation.
+#I "../../bin"
+
+(**
 ## FsIrc
 
 IRC parsing and network library for F# and .NET, using FParsec.
@@ -41,3 +47,4 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+*)
